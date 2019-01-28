@@ -31,6 +31,7 @@
 define([
 	"dojo/_base/lang",
 	"dojo/_base/array",
+	"dojo/dom-class",
 	"umc/tools",
 	"umc/widgets/ContainerWidget",
 	"umc/widgets/LabelPane",
@@ -41,7 +42,7 @@ define([
 	"umc/widgets/Button",
 	"umc/widgets/SubmitButton",
 	"umc/widgets/ResetButton"
-], function(lang, array, tools, ContainerWidget, LabelPane, TitlePane, Tooltip, HiddenInput, CheckBox, Button, SubmitButton, ResetButton) {
+], function(lang, array, domClass, tools, ContainerWidget, LabelPane, TitlePane, Tooltip, HiddenInput, CheckBox, Button, SubmitButton, ResetButton) {
 	var render = {};
 	lang.mixin(render, {
 		widgets: function(/*Object[]*/ widgetsConf, owner) {
@@ -65,6 +66,9 @@ define([
 				// render the widget
 				var widget = this.widget(conf, widgets);
 				if (widget) {
+					if (Object.prototype.hasOwnProperty.call(conf, 'syntax')) {
+						domClass.add(widget.domNode, 'syntax' + conf.syntax);
+					}
 					if (owner) {
 						owner.own(widget);
 					}
