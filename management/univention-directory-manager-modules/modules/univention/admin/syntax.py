@@ -377,6 +377,12 @@ class TwoString(string):
 class TextArea(string):
 	pass
 
+class Editor(string):
+	pass
+
+class TwoEditor(Editor):
+	size = 'Two'
+
 
 class UCSVersion(string):
 
@@ -3638,6 +3644,9 @@ class LocalizedDisplayName(translationTuple):
 
 class LocalizedDescription(translationTuple):
 	subsyntaxes = [(_('Language code (e.g. en_US)'), languageCode), (_('Description'), string)]
+
+class LocalizedAnonymousEmpty(translationTuple):
+	subsyntaxes = [(_('Language code (e.g. en_US)'), languageCode), (_('Text'), TwoEditor)]
 
 
 class mailHomeServer(LDAP_Search):  # DEPRECATED! Use MailHomeServer
