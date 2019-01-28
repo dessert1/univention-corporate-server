@@ -615,7 +615,7 @@ define([
 									dialog.contextNotify(_('Changes saved'));
 									if (!dn) {
 										var content = lang.clone(portalJson.portal.content);
-										content.push([result['$dn$'], []]);
+										content.push([result.$dn$, []]);
 										this._saveEntryOrder(content);
 									} else {
 										this._refresh(portalTools.RenderMode.EDIT);
@@ -727,11 +727,11 @@ define([
 								return iprop.id === 'portalComputers';
 							})[0];
 							if (portalComputersProp) {
-								form._widgets['portalComputers'].autoSearch = true;
+								form._widgets.portalComputers.autoSearch = true;
 							}
 
 							if (type === 'settings/portal_category' && dn) {
-								form._widgets['name'].set('disabled', true);
+								form._widgets.name.set('disabled', true);
 							}
 
 							var options = [{
@@ -795,7 +795,7 @@ define([
 				renderMode: renderMode,
 				category: category.dn,
 				categoryIndex: category.dn === 'localApps' ? null : this._categoryIndex++,
-				$notInPortalJSON$: category['$notInPortalJSON$']
+				$notInPortalJSON$: category.$notInPortalJSON$
 			});
 			this._cleanupList.widgets.push(portalCategory);
 
@@ -1087,7 +1087,7 @@ define([
 							}).then(lang.hitch(this, function(result) {
 								if (result.success) {
 									var content = lang.clone(portalJson.portal.content);
-									content[portalCategory.categoryIndex][1].push(result['$dn$']);
+									content[portalCategory.categoryIndex][1].push(result.$dn$);
 									wizardDialog.hide().then(lang.hitch(this, function() {
 										wizardDialog.destroyRecursive();
 										dialog.contextNotify(_('Portal entry was successfully created'));
@@ -1240,10 +1240,6 @@ define([
 			this._setupEditModeIfAuthorized();
 			this._render(portalTools.RenderMode.NORMAL);
 			this._addLinks();
-
-			// TODO
-			window.portal = this;
-			window._Button = _Button;
 		},
 
 		_initProperties: function() {
@@ -1518,7 +1514,6 @@ define([
 				var categoryDN = category[0];
 				var entryDNs = category[1];
 				category = portalJson.categories[categoryDN];
-				// TODO add dummy category
 				if (!category) {
 					categories.push({
 						$notInPortalJSON$: true,
