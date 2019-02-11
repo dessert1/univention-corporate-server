@@ -59,13 +59,6 @@ define([
 		_driveContainer: null,
 
 		_loadValuesOfProfile: function() {
-			// put limit on memory
-			try {
-				var nodeURI = this.getWidget('nodeURI');
-				var maxMem = nodeURI.store.getValue(nodeURI.item, 'memAvailable');
-				this.getWidget('maxMem').get('constraints').max = maxMem;
-			} catch (err) { }
-
 			// query the profile settings
 			this.standby(true);
 			var profileDN = this.getWidget('profileDN').get('value');

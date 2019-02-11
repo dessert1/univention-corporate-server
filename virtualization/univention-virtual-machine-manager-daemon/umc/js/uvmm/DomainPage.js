@@ -508,6 +508,30 @@ define([
 					this._snapshotGrid.filter();
 					this._targethostGrid.filter();
 				}
+
+				tools.umcpCommand('uvmm/node/query', {
+					nodePattern: this._domain.nodeURI
+				}).then(function(data) {
+					// success
+					if (data.result.length) {
+						try {
+							var maxMem = data.result[0].phyMem;
+							this.getWidget('maxMem').get('constraints').max = maxMem;
+
+							var list = [{id: 1, label: '1'}];
+							var nCPU = data.result[0].cpus;
+							for (var i = 2; i <= nCPU; ++i) {
+								list.push({ id: i, label: '' + i });
+							}
+							this.getWidget('vcpus');
+						} catch (err) {
+							// fail
+						}
+					}
+				}, function() {
+					// fallback
+				});
+
 				this.standby(false);
 			}), lang.hitch(this, function() {
 				this.standby(false);
