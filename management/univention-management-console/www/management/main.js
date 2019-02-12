@@ -1695,6 +1695,7 @@ define([
 				module_flavor_css = lang.replace('{id}-{flavor}', module);
 			}
 			module_flavor_css = module_flavor_css.replace(/[^_a-zA-Z0-9\-]/g, '-');
+
 			domClass.add(tab.domNode, lang.replace('color-{0}', [tab.categoryColor]));
 			domClass.add(tab.controlButton.domNode, lang.replace('umcModuleTab-{0}', [module_flavor_css]));
 			var moreTabsDropDown = lang.getObject('_header._moreTabsDropDownButton.dropDown', false, this);
@@ -1715,11 +1716,15 @@ define([
 			this._insertedTabStyles.push(module_flavor_css);
 
 			var color = this.__getModuleColor(module);
-			var defaultClasses = '.umc .dijitTabContainerTop-tabs .dijitTab';
-			var cssProperties = lang.replace('background-color: {0}; background-image: none; filter: none;', [color]);
 
 			// color the tabs in the tabs dropDownMenu of the umcHeaer
-			styles.insertCssRule(lang.replace('.umc .umcMoreTabsDropDownMenuContent .dijitMenuItemHover.color-{0},.umc .umcMoreTabsDropDownMenuContent .dijitMenuItemSelected.color-{0}', [module_flavor_css]), lang.replace('background-color: {0}', [color]));
+			styles.insertCssRule(
+				lang.replace(
+					'.umc .dijitMenuItemHover.color-{0},' +
+					'.umc .dijitMenuItemSelected.color-{0}', 
+					[module_flavor_css]
+				),
+				lang.replace('background-color: {0}', [color]));
 
 			// color module tabs
 			var dijitTabColor = dojo.colorFromHex(color);
@@ -1727,17 +1732,18 @@ define([
 			var contrastLight = umc.tools.contrast(dijitTabColor, '#fff', '#6e6e6e');
 			var contrastDark  = umc.tools.contrast(dijitTabColor, 'rgba(0, 0, 0, 0.87)', '#6e6e6e');
 			if (contrastDark > contrastLight) {
-				styles.insertCssRule(lang.replace('{0}.umcModuleTab-{1}.dijitTabChecked', [defaultClasses, module_flavor_css]), lang.replace('color: {0};', ['rgba(0, 0, 0, 0.87)']));
-				styles.insertCssRule(lang.replace('{0}.umcModuleTab-{1}.dijitTabHover', [defaultClasses, module_flavor_css]), lang.replace('color: {0};', ['rgba(0, 0, 0, 0.87)']));
-				styles.insertCssRule(lang.replace('{0}.umcModuleTab-{1}.dijitTabActive', [defaultClasses, module_flavor_css]), lang.replace('color: {0};', ['rgba(0, 0, 0, 0.87)']));
-
-				// styles.insertCssRule(lang.replace('{0}.umcModuleTab-{1}.dijitTabChecked .tabLabel', [defaultClasses, module_flavor_css]), lang.replace('border-color: {0};', ['rgba(0, 0, 0, 0.87)']));
+				styles.insertCssRule(lang.replace('.umc .umcModuleTab-{0}.dijitTabChecked', [module_flavor_css]), lang.replace('color: {0};', ['rgba(0, 0, 0, 0.87)']));
+				styles.insertCssRule(lang.replace('.umc .umcModuleTab-{0}.dijitTabHover',   [module_flavor_css]), lang.replace('color: {0};', ['rgba(0, 0, 0, 0.87)']));
+				styles.insertCssRule(lang.replace('.umc .umcModuleTab-{0}.dijitTabActive',  [module_flavor_css]), lang.replace('color: {0};', ['rgba(0, 0, 0, 0.87)']));
 			}
+			domClass.add(tab.controlButton.domNode, contrastDark > contrastLight ? 'lightContrast' : 'darkContrast');
 			styles.insertCssRule(lang.replace('{0}.umcModuleTab-{1}.dijitTabChecked', [defaultClasses, module_flavor_css]), lang.replace('background-color: {0};', [dijitTabColor]));
+
 			var dijitTabHoverColor = dijitTabColor;
 			// var dijitTabHoverColor = dojo.colorFromHex(color);
 			// dijitTabHoverColor.a = 0.95;
 			styles.insertCssRule(lang.replace('{0}.umcModuleTab-{1}.dijitTabHover',   [defaultClasses, module_flavor_css]), lang.replace('background-color: {0};', [dijitTabHoverColor]));
+
 			var dijitTabActiveColor = dijitTabColor;
 			// var dijitTabActiveColor = dojo.colorFromHex(color);
 			styles.insertCssRule(lang.replace('{0}.umcModuleTab-{1}.dijitTabActive',  [defaultClasses, module_flavor_css]), lang.replace('background-color: {0};', [dijitTabActiveColor]));
