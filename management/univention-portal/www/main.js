@@ -56,6 +56,7 @@ define([
 	"dijit/MenuItem",
 	"dijit/form/DropDownButton",
 	"umc/tools",
+	"umc/render",
 	"umc/store",
 	"umc/json",
 	"umc/dialog",
@@ -74,7 +75,7 @@ define([
 	"umc/json!/univention/portal/portal.json", // -> contains entries of this portal as specified in the LDAP directory
 	"umc/json!/univention/portal/apps.json", // -> contains all locally installed apps
 	"umc/i18n!portal"
-], function(declare, lang, array, Deferred, aspect, when, on, dojoQuery, dom, domClass, domAttr, domGeometry, domStyle, mouse, Source, all, sprintf, Standby, dijitFocus, a11y, registry, Dialog, Tooltip, DropDownMenu, MenuItem, DropDownButton, tools, store, json, dialog, Button, Form, ContainerWidget, ConfirmDialog, StandbyMixin, MultiInput, put, PortalCategory, PortalEntryWizard, PortalEntryWizardPreviewTile, portalTools, i18nTools, portalJson, installedApps, _) {
+], function(declare, lang, array, Deferred, aspect, when, on, dojoQuery, dom, domClass, domAttr, domGeometry, domStyle, mouse, Source, all, sprintf, Standby, dijitFocus, a11y, registry, Dialog, Tooltip, DropDownMenu, MenuItem, DropDownButton, tools, render, store, json, dialog, Button, Form, ContainerWidget, ConfirmDialog, StandbyMixin, MultiInput, put, PortalCategory, PortalEntryWizard, PortalEntryWizardPreviewTile, portalTools, i18nTools, portalJson, installedApps, _) {
 
 	// convert IPv6 addresses to their canonical form:
 	//   ::1:2 -> 0000:0000:0000:0000:0000:0000:0001:0002
@@ -505,7 +506,7 @@ define([
 				});
 				var initialFormValues = {}; // set after form.load()
 
-				this._requireWidgets(props).then(lang.hitch(this, function() {
+				render.requireWidgets(props).then(lang.hitch(this, function() {
 					props = this._prepareProps(props); // do this after requireWidgets because requireWidgets changes the type of the prop
 
 					var form = new Form({
@@ -904,33 +905,6 @@ define([
 			put(this._contentNode, this.newCategoryButton.domNode);
 		},
 
-		// TODO copy pasted from udm/DetailPage.js
-		_requireWidgets: function(properties) {
-			var deferreds = [];
-
-			// require MultiInput for multivalue properties that will
-			// get rewritten by this._prepareProps()
-			properties = lang.clone(properties); // clone beacuse properties is a reference to an array
-			properties.push({ 'type': 'MultiInput' });
-
-			// require the necessary widgets to display the given properties
-			array.forEach(properties, function(prop) {
-				if (typeof prop.type == 'string') {
-					var path = prop.type.indexOf('/') < 0 ? 'umc/widgets/' + prop.type : prop.type;
-					var errHandler;
-					var deferred = new Deferred();
-					var loaded = function() {
-						deferred.resolve();
-						errHandler.remove();
-					};
-					errHandler = require.on('error', loaded);
-					require([path], loaded);
-					deferreds.push(deferred);
-				}
-			});
-			return all(deferreds);
-		},
-
 		editPortalEntry: function(portalCategory, item) {
 			var standbyWidget = this._standby;
 			standbyWidget.show();
@@ -939,7 +913,7 @@ define([
 			this._moduleCache.getProperties('settings/portal_entry').then(lang.hitch(this, function(portalEntryProps) {
 				portalEntryProps = lang.clone(portalEntryProps);
 
-				this._requireWidgets(portalEntryProps).then(lang.hitch(this, function() {
+				render.requireWidgets(portalEntryProps).then(lang.hitch(this, function() {
 					portalEntryProps = this._prepareProps(portalEntryProps);
 					var wizardWrapper = new ContainerWidget({});
 					var tile = new PortalEntryWizardPreviewTile({});
