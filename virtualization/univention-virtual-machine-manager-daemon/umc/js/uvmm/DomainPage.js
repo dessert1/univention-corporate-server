@@ -511,24 +511,28 @@ define([
 
 				tools.umcpCommand('uvmm/node/query', {
 					nodePattern: this._domain.nodeURI
-				}).then(function(data) {
+				}).then(lang.hitch(this, function(data) {
 					// success
 					if (data.result.length) {
 						try {
-							var maxMem = data.result[0].phyMem;
-							this.getWidget('maxMem').get('constraints').max = maxMem;
+							var node = data.result[0];
 
+							var wm = this._advancedForm.getWidget('maxMem');
+							wm.get('constraints').max = node.memAvailable;
+
+							/* FIXME: Get rid of "dynamicValues: types.getCPUs" to remove the duplicate UMC call - does not work yet
 							var list = [{id: 1, label: '1'}];
-							var nCPU = data.result[0].cpus;
-							for (var i = 2; i <= nCPU; ++i) {
-								list.push({ id: i, label: '' + i });
+							for (var i = 2; i <= node.cpus; ++i) {
+								list.push({id: i, label: '' + i});
 							}
-							this.getWidget('vcpus');
+							var wc = this._advancedForm.getWidget('vcpus');
+							wc.statixcValues = list;
+							*/
 						} catch (err) {
 							// fail
 						}
 					}
-				}, function() {
+				}), function() {
 					// fallback
 				});
 
