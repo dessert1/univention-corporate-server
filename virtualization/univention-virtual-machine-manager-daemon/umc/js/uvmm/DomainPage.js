@@ -200,6 +200,8 @@ define([
 					name: 'maxMem',
 					type: MemoryTextBox,
 					required: true,
+					softMax: 4*1024*1024*1024*1024,
+					softMaxMessage: _('<b>Warning:</b> TODO: description: The value exceed the currently available RAM on the node server. Continuing may cause blah.'),
 					label: _('Memory (default unit MB)')
 				}, {
 					name: 'boot_hvm',
@@ -508,28 +510,27 @@ define([
 					this._targethostGrid.filter();
 				}
 
-				tools.umcpCommand('uvmm/node/query', {
+				return tools.umcpCommand('uvmm/node/query', {
 					nodePattern: this._domain.nodeURI
 				}).then(lang.hitch(this, function(data) {
-					// success
 					if (data.result.length) {
-						try {
-							var node = data.result[0];
+						var node = data.result[0];
 
-							var wm = this._advancedForm.getWidget('maxMem');
-							wm.get('constraints').max = node.memAvailable;
+						var wm = this._advancedForm.getWidget('maxMem');
+						// the following would make it a hard constraint, enable if wanted.
+						// wm.set('constraints', lang.mixin({}, wm.get('constraints'), {max: node.memAvailable}));
+						wm.set('softMax', node.memAvailable);
 
-							/* FIXME: Get rid of "dynamicValues: types.getCPUs" to remove the duplicate UMC call - does not work yet
-							var list = [{id: 1, label: '1'}];
-							for (var i = 2; i <= node.cpus; ++i) {
-								list.push({id: i, label: '' + i});
-							}
-							var wc = this._advancedForm.getWidget('vcpus');
-							wc.statixcValues = list;
-							*/
-						} catch (err) {
-							// fail
+						// FIXME: when the first time an object is edited, the vcpus are empty... we would need to do this before load()
+						/*
+						var list = [{id: 1, label: '1'}];
+						for (var i = 2; i <= node.cpus; ++i) {
+							list.push({id: i, label: '' + i});
 						}
+						var wc = this._advancedForm.getWidget('vcpus');
+						wc.set('staticValues', list);
+						wc._setStaticValues();
+						*/
 					}
 				}));
 			})));

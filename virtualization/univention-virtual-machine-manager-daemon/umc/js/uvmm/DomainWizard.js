@@ -58,11 +58,12 @@ define([
 		_driveGrid: null,
 		_driveContainer: null,
 
+		autoValidate: false,  // TODO: in the future we can activate this, when umc.widgets.Wizard/Form focuses the first invalid widget
+
 		_loadValuesOfProfile: function() {
 			// query the profile settings
-			this.standby(true);
 			var profileDN = this.getWidget('profileDN').get('value');
-			tools.umcpCommand('uvmm/profile/get', {
+			this.standbyDuring(tools.umcpCommand('uvmm/profile/get', {
 				profileDN: profileDN
 			}).then(lang.hitch(this, function(data) {
 				// we got the profile...
@@ -81,12 +82,7 @@ define([
 
 				// update page header
 				this._pages.general.set('headerText', _('Create a virtual machine (profile: %s)', this._profile.name));
-
-				this.standby(false);
-			}), lang.hitch(this, function() {
-				// fallback... switch off the standby animation
-				this.standby(false);
-			}));
+			})));
 		},
 
 		postMixInProperties: function() {
@@ -166,13 +162,15 @@ define([
 						name: 'maxMem',
 						type: MemoryTextBox,
 						required: true,
+						softMax: 4*1024*1024*1024*1024,
+						softMaxMessage: _('<b>Warning:</b> TODO: description: The value exceed the currently available RAM on the node server. Continuing may cause blah.'),
 						label: _('Memory (default unit MB)')
 					}, {
 						name: 'vcpus',
 						type: ComboBox,
-						label: _('Number of CPUs'),
-						dynamicOptions: {nodeURI: nodeURI},
-						dynamicValues: types.getCPUs
+						//dynamicOptions: {nodeURI: nodeURI},
+						//dynamicValues: types.getCPUs,
+						label: _('Number of CPUs')
 					}, {
 						name: 'vnc',
 						type: CheckBox,
@@ -190,6 +188,27 @@ define([
 					callback: lang.hitch(this, 'onCancel')
 				}]
 			});
+
+			this.standbyDuring(tools.umcpCommand('uvmm/node/query', {
+				nodePattern: nodeURI
+			}).then(lang.hitch(this, function(data) {
+				if (data.result.length) {
+					var node = data.result[0];
+
+					var wm = this.getWidget('general', 'maxMem');
+					// the following would make it a hard constraint, enable if wanted.
+					// wm.set('constraints', lang.mixin({}, wm.get('constraints'), {max: node.memAvailable}));
+					wm.set('softMax', node.memAvailable);
+
+					var list = [{id: 1, label: '1'}];
+					for (var i = 2; i <= node.cpus; ++i) {
+						list.push({id: i, label: '' + i});
+					}
+					var wc = this.getWidget('general', 'vcpus');
+					wc.set('staticValues', list);
+					wc._setStaticValues();
+				}
+			})));
 		},
 
 		buildRendering: function() {
@@ -225,9 +244,8 @@ define([
 				} catch (err) { }
 
 				// query the profile settings
-				this.standby(true);
 				var profileDN = this.getWidget('profileDN').get('value');
-				tools.umcpCommand('uvmm/profile/get', {
+				this.standbyDuring(tools.umcpCommand('uvmm/profile/get', {
 					profileDN: profileDN
 				}).then(lang.hitch(this, function(data) {
 					// we got the profile...
@@ -246,22 +264,15 @@ define([
 
 					// update page header
 					this._pages.general.set('headerText', _('Create a virtual machine (profile: %s)', this._profile.name));
-
-					this.standby(false);
-				}), lang.hitch(this, function() {
-					// fallback... switch off the standby animation
-					this.standby(false);
 				}));
 			}
-			else*/ if (pageName == 'general') {
+			else*/ if (pageName === 'general') {
 				// update the domain info for the drive grid
-				array.forEach( [ 'name', 'maxMem' ], lang.hitch( this, function( widgetName ) {
-					if ( ! this.getWidget( widgetName ).isValid() ) {
-						this.getWidget( widgetName ).focus();
-						nextName = null;
-						return false;
-					}
-				} ) );
+				array.forEach(this.getPage(pageName)._form.getInvalidWidgets(), lang.hitch(this, function(widgetName) {  // TODO: remove when this.autoValidate
+					this.getWidget(pageName, widgetName).focus();
+					nextName = pageName;
+					return false;
+				}));
 
 				if ( null !== nextName ) {
 					this._driveGrid.domain = this.getValues();

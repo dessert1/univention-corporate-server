@@ -562,9 +562,9 @@ define([
 			_dialog.show();
 		},
 
-		_migrateDomain: function( ids, items ) {
+		_migrateDomain: function(ids, domains) {
 			var _dialog = null, form = null;
-			var unavailable = array.some( items, function( domain ) {
+			var unavailable = array.some(domains, function( domain ) {
 				return domain.node_available === false;
 			} );
 
@@ -611,13 +611,28 @@ define([
 					widgets: [ {
 						type: Text,
 						name: 'warning',
-							content: _( '<p>For fail over the virtual machine can be migrated to another physical server re-using the last known configuration and all disk images. This can result in <strong>data corruption</strong> if the images are <strong>concurrently used</strong> by multiple running machines! Therefore the failed server <strong>must be blocked from accessing the image files</strong>, for example by blocking access to the shared storage or by disconnecting the network.</p><p>When the server is restored, all its previous virtual machines will be shown again. Any duplicates have to be cleaned up manually by migrating the machines back to the server or by deleting them. Make sure that shared images are not delete.</p>' )
+						visible: unavailable,
+						content: _( '<p>For fail over the virtual machine can be migrated to another physical server re-using the last known configuration and all disk images. This can result in <strong>data corruption</strong> if the images are <strong>concurrently used</strong> by multiple running machines! Therefore the failed server <strong>must be blocked from accessing the image files</strong>, for example by blocking access to the shared storage or by disconnecting the network.</p><p>When the server is restored, all its previous virtual machines will be shown again. Any duplicates have to be cleaned up manually by migrating the machines back to the server or by deleting them. Make sure that shared images are not delete.</p>' )
+					}, {
+						type: Text,
+						name: 'warning_ram',
+						visible: false,
+						depends: ['name'],
+						content: '<p>' + _('<b>Warning:</b> TODO: description: The value exceed the currently available RAM on the node server. Continuing may cause blah.') + '</p>'
 					}, {
 						name: 'name',
 						type: ComboBox,
 						label: _('Please select the destination server:'),
 						staticValues: validHosts,
-						sortStaticValues: true
+						sortStaticValues: true,
+						onChange: function(value, widgets) {
+							array.forEach(widgets.name.staticValues, function(host) {
+								if (host.id === value) {
+									widgets.warning_ram.set('visible', (host.memAvailable <= domains[0].mem) || true);
+									return false;
+								}
+							});
+						}
 					}],
 					buttons: [{
 						name: 'cancel',
@@ -636,10 +651,9 @@ define([
 							}
 						})
 					}],
-					layout: [ 'warning', 'name' ]
+					layout: [ 'warning', 'warning_ram', 'name' ]
 				});
 
-				form._widgets.warning.set( 'visible', unavailable );
 				_dialog = new Dialog({
 					title: _('Migrate domain'),
 					content: form,
