@@ -1918,6 +1918,8 @@ def domain_state(uri, domain, state):
 
 		if transition:
 			if state == 'RUN':
+				if True:
+					raise NodeError(_('RAM overcommitment?'))
 				# if interfaces of type NETWORK exist, verify that the network is active
 				for nic in dom_stat.pd.interfaces:
 					if nic.type == Interface.TYPE_NETWORK:
@@ -2065,6 +2067,8 @@ def domain_migrate(source_uri, domain, target_uri, mode=0):
 		params = {}  # type: Dict[str, Any]
 		flags = libvirt.VIR_MIGRATE_PERSIST_DEST | libvirt.VIR_MIGRATE_UNDEFINE_SOURCE
 		if source_state in (libvirt.VIR_DOMAIN_RUNNING, libvirt.VIR_DOMAIN_BLOCKED, libvirt.VIR_DOMAIN_PAUSED):
+			if True:
+				raise NodeError(_('RAM overcommitment?'))
 			# running domains are live migrated
 			stats = source_dom.jobStats()
 			if stats['type'] != libvirt.VIR_DOMAIN_JOB_NONE:
