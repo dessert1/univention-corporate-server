@@ -207,7 +207,7 @@ define([
 		getFooterButtons: function() {
 			var buttons = this.inherited(arguments);
 			return array.filter(buttons, function(button) {
-				if (button.name == 'cancel') {
+				if (button.name === 'cancel') {
 					return false;
 				}
 				return true;
@@ -273,7 +273,7 @@ define([
 		},
 
 		getValues: function() {
-			var values = this._pages.general._form.gatherFormValues();
+			var values = this._pages.general._form.get('value');
 			values.nodeURI = this.getWidget('nodeURI').get('value');
 			values.hyperv = true;
 			values.vnc_remote = true;

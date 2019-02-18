@@ -152,9 +152,9 @@ define([
 					name: 'email',
 					label: _('Send email'),
 					callback: lang.hitch(this, function() {
-						var val = this._generalForm.gatherFormValues();
+						var val = this._generalForm.get('value');
 						if (val.contact) {
-							location.href = 'mailto:' + val.contact + '?subject=' + _('Virtual machine: %s', val.name);
+							location.href = 'mailto:' + encodeURIComponent(val.contact) + '?subject=' + encodeURIComponent(_('Virtual machine: %s', val.name));
 						}
 					})
 				}],
@@ -416,12 +416,11 @@ define([
 		},
 
 		load: function(id) {
-			this.standby(true);
 			// clear form data
 			this._generalForm.clearFormValues();
 			this._stack.selectChild( this._generalPage, true);
 
-			tools.umcpCommand('uvmm/domain/get', {
+			this.standbyDuring(tools.umcpCommand('uvmm/domain/get', {
 				domainURI: id
 			}).then(lang.hitch(this, function(data) {
 				// get data blob
@@ -532,21 +531,15 @@ define([
 							// fail
 						}
 					}
-				}), function() {
-					// fallback
-				});
-
-				this.standby(false);
-			}), lang.hitch(this, function() {
-				this.standby(false);
-			}));
+				}));
+			})));
 		},
 
 		onCloseTab: function() {
 			// event stub
 		},
 
-		onUpdateProgress: function(i, n) {
+		onUpdateProgress: function(/*i, n*/) {
 			// event stub
 		}
 	});
