@@ -112,7 +112,7 @@ define([
 	};
 
 	var _OverviewPane = declare([GalleryPane], {
-//		categories: null,
+		categories: null,
 
 		constructor: function(props) {
 			lang.mixin(this, props);
@@ -134,6 +134,13 @@ define([
 					descending: false
 				}]
 			};
+
+			this.contrastMap = {};
+			this.categories.forEach(lang.hitch(this, function(category) {
+				var contrastLight = umc.tools.contrast(category.color, '#fff');
+				var contrastDark  = umc.tools.contrast(category.color, 'rgba(0, 0, 0, 0.87)');
+				this.contrastMap[category.id] = contrastDark > contrastLight ? 'contrastDark' : 'contrastLight';
+			}));
 		},
 
 		getIconClass: function(item) {
@@ -151,21 +158,18 @@ define([
 			return '';
 		},
 
-		_createFavoriteIcon: function(categoryColor, parentNode) {
-			var _createIcon = function(nodeClass, color) {
-				var node = domConstruct.create('div', { 'class': nodeClass }, parentNode);
-				var surface = gfx.createSurface(node, 10, 10);
-				surface.createPolyline([
-					{x: 0, y: 0},
-					{x: 0, y: 10},
-					{x: 5, y: 5.6},
-					{x: 10, y: 10},
-					{x: 10, y: 0}
-				]).setFill(color);
-			};
-
-			_createIcon('umcFavoriteIconInverted', 'white');
-			_createIcon('umcFavoriteIconDefault', categoryColor);
+		_createFavoriteIcon: function(category, parentNode) {
+			var node = domConstruct.create('div', {
+				'class': lang.replace('umcFavoriteIconDefault umcFavoriteIconDefault--{0}', [this.contrastMap[category.id]])
+			}, parentNode);
+			var surface = gfx.createSurface(node, 10, 10);
+			surface.createPolyline([
+				{x: 0, y: 0},
+				{x: 0, y: 10},
+				{x: 5, y: 5.6},
+				{x: 10, y: 10},
+				{x: 10, y: 0}
+			]).setFill(category.color);
 		},
 
 		renderRow: function(item, options) {
@@ -173,10 +177,11 @@ define([
 			var category_for_color = item.category_for_color;
 			var className = lang.replace('umcGalleryCategory-{0}', [category_for_color]);
 			domClass.add(div.firstElementChild, className);
+			domClass.add(div.firstElementChild, lang.replace('umcGalleryCategory--{0}', [this.contrastMap[item.category_for_color]]));
 			if (isFavorite(item)) {
 				var cat = require('umc/app').getCategory(category_for_color);
 				if (cat) {
-					this._createFavoriteIcon(cat.color, div.firstElementChild);
+					this._createFavoriteIcon(cat, div.firstElementChild);
 				}
 			}
 			return div;
@@ -1424,7 +1429,7 @@ define([
 		_setupOverviewPage: function() {
 			this._grid = new _OverviewPane({
 				'class': 'umcOverviewPane',
-//				categories: this.getCategories(),
+				categories: this.getCategories(),
 				store: this._moduleStore,
 				actions: [{
 					name: 'open',
@@ -1488,30 +1493,23 @@ define([
 				var color = category.color || 'white';
 				if (has('touch')) {
 					styles.insertCssRule(lang.replace('.umcGalleryWrapperItem .umcGalleryCategory-{id}.touched, .umcGalleryWrapperItem.umcGalleryItemActive .umcGalleryCategory-{id}', category), lang.replace('background-color: {0}; ', [color]));
-				} else {
-					styles.insertCssRule(lang.replace('.umcGalleryWrapperItem .umcGalleryCategory-{id}:hover, .umcGalleryWrapperItem.umcGalleryItemActive .umcGalleryCategory-{id}', category), lang.replace('background-color: {0}; ', [color]));
-
-					var contrastLight = umc.tools.contrast(color, '#fff');
-					var contrastDark  = umc.tools.contrast(color, 'rgba(0, 0, 0, 0.87)');
-					if (contrastDark > contrastLight) {
-						styles.insertCssRule(
-							lang.replace(
-								'.umcGalleryWrapperItem .umcGalleryCategory-{id}:hover .umcGalleryName, ' +
-								'.umcGalleryWrapperItem.umcGalleryItemActive .umcGalleryCategory-{id} .umcGalleryName', 
-								category
-							),
-							lang.replace('color: {0} !important;', ['rgba(0, 0, 0, 0.87)'])
-						);
-						styles.insertCssRule(
-							lang.replace(
-								'.umcGalleryWrapperItem .umcGalleryCategory-{id}:hover .umcGalleryDescription, ' +
-								'.umcGalleryWrapperItem.umcGalleryItemActive .umcGalleryCategory-{id} .umcGalleryDescription', 
-								category
-							),
-							lang.replace('color: {0} !important;', ['rgba(0, 0, 0, 0.87)'])
-						);
-					}
 				}
+				styles.insertCssRule(lang.replace('.umcGalleryWrapperItem .umcGalleryCategory-{id}:hover, .umcGalleryWrapperItem.umcGalleryItemActive .umcGalleryCategory-{id}', category), lang.replace('background-color: {0}; ', [color]));
+
+					// var contrastLight = umc.tools.contrast(color, '#fff');
+					// var contrastDark  = umc.tools.contrast(color, 'rgba(0, 0, 0, 0.87)');
+					// if (contrastDark > contrastLight) {
+						// styles.insertCssRule(
+							// lang.replace(
+								// '.umcGalleryWrapperItem .umcGalleryCategory-{id}:hover .umcGalleryName, ' +
+								// '.umcGalleryWrapperItem.umcGalleryItemActive .umcGalleryCategory-{id} .umcGalleryName, ' + 
+								// '.umcGalleryWrapperItem .umcGalleryCategory-{id}:hover .umcGalleryDescription, ' +
+								// '.umcGalleryWrapperItem.umcGalleryItemActive .umcGalleryCategory-{id} .umcGalleryDescription', 
+								// category
+							// ),
+							// lang.replace('color: {0} !important;', ['rgba(0, 0, 0, 0.87)'])
+						// );
+					// }
 				var button = new Button({
 					label: category.label,
 					'class': lang.replace('umcCategory-{id}', category),
