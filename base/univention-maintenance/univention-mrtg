@@ -71,10 +71,10 @@ rm -f "$wwwdir"/u{c,d}s_*.{png,txt}
 find "$wwwdir" -name "uds_*.log" -exec bash -c 'mv "$0" "${0/\/uds/\/ucs}"' {} \;
 
 # memory
-freemem=$(more /proc/meminfo | grep ^MemFree: | awk {'print $2'})
-buffers=$(more /proc/meminfo | grep ^Buffers: | awk {'print $2'})
-cached=$(more /proc/meminfo | grep ^Cached: | awk {'print $2'})
-memtotal=$(more /proc/meminfo | grep ^MemTotal: | awk {'print $2'})
+freemem=$(</proc/meminfo grep -oP '^MemFree: *\K[0-9]+')
+buffers=$(</proc/meminfo grep -oP '^Buffers: *\K[0-9]+')
+cached=$(</proc/meminfo grep -oP '^Cached: *\K[0-9]+')
+memtotal=$(</proc/meminfo grep -oP '^MemTotal: *\K[0-9]+')
 free=$(($buffers + $cached + $freemem))
 memused=$(($memtotal - $free))
 prctmem=$((100 * $memused / $memtotal))
@@ -97,8 +97,8 @@ rm -f "$mrtg_config" "$wwwdir"/ucs_*.htm*
 echo "Auslastung des Hauptspeichers: $prctmem%" >"$wwwdir/$mrtgname.txt"
 
 # swap
-swaptotal=$(more /proc/meminfo | grep ^SwapTotal: | awk {'print $2'})
-swapfree=$(more /proc/meminfo | grep ^SwapFree: | awk {'print $2'})
+swaptotal=$(</proc/meminfo grep -oP '^SwapTotal: *\K[0-9]+')
+swapfree=$(</proc/meminfo grep -oP '^SwapFree: *\K[0-9]+')
 swapused=$(($swaptotal - $swapfree))
 if [ "$swaptotal" = "0" ]; then
 	prctswap=0
@@ -124,7 +124,7 @@ rm -f "$mrtg_config" "$wwwdir"/ucs_*.htm*
 echo "Auslastung des Auslagerungsspeicher: $prctswap%" >"$wwwdir/$mrtgname.txt"
 
 # CPU usage of last 15 minutes
-loadavg="`echo \`cat /proc/loadavg |awk '{print $3}'\`*100 | bc | cut -f1 -d"."`"
+loadavg=$(<<<"$(</proc/loadavg cut -d" " -f3)*100/1" bc)
 mrtgname="ucs_0load"
 echo "WorkDir: $wwwdir" > "$mrtg_config"
 echo "Language: german" >> "$mrtg_config"
