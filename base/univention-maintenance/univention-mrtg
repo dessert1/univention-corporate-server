@@ -152,12 +152,13 @@ cat <<__EOT__ >"$wwwdir/$indexhtm"
 __EOT__
 for file in "$wwwdir"/*-day.png; do
     echo "<P ALIGN=\"center\"><FONT FACE=\"ARIAL\">" >>"$wwwdir/$indexhtm"
-    cat "`echo \"$file\" | sed \"s/-day.png/.txt/\"`" >>"$wwwdir/$indexhtm"
+    cat "${file%%-day.png}.txt" >>"$wwwdir/$indexhtm"
     echo "<BR>" >>"$wwwdir/$indexhtm"
-    echo "<IMG SRC=\"`basename "$file"`\"><BR>" >>"$wwwdir/$indexhtm"
-    echo "<IMG SRC=\"`basename "$file" -day.png`-week.png\"><BR>" >>"$wwwdir/$indexhtm"
-    echo "<IMG SRC=\"`basename "$file" -day.png`-month.png\"><BR>" >>"$wwwdir/$indexhtm"
-    echo "<IMG SRC=\"`basename "$file" -day.png`-year.png\"><BR>" >>"$wwwdir/$indexhtm"
+    file="${file##*/}"
+    echo "<IMG SRC=\"$file\"><BR>" >>"$wwwdir/$indexhtm"
+    echo "<IMG SRC=\"${file/%day.png/week.png}\"><BR>" >>"$wwwdir/$indexhtm"
+    echo "<IMG SRC=\"${file/%day.png/month.png}\"><BR>" >>"$wwwdir/$indexhtm"
+    echo "<IMG SRC=\"${file/%day.png/year.png}\"><BR>" >>"$wwwdir/$indexhtm"
     echo "</FONT></P>" >>"$wwwdir/$indexhtm"
 done
 cat <<__EOT__ >>"$wwwdir/$indexhtm"
